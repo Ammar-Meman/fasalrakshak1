@@ -186,7 +186,13 @@ export const getMe = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Me error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      if (!process.env.JWT_SECRET) {
+        console.error('Me Error: Missing JWT_SECRET configuration');
+      } else {
+        console.error(`Me Error: ${error.name} - ${error.message}`);
+      }
+    }
     res.status(401).json({ success: false, message: 'Not authorized, token failed' });
   }
 };

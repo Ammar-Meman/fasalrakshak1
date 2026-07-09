@@ -15,7 +15,8 @@
     "express": "^5.2.1",
     "fasalrakshak-monorepo": "file:..",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.3.3"
+    "mongoose": "^9.3.3",
+    "multer": "^2.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

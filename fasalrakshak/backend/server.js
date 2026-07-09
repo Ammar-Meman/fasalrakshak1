@@ -6,8 +6,20 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import scanRoutes from './routes/scanRoutes.js';
+import agentRoutes from './routes/agentRoutes.js';
+import enterpriseRoutes from './routes/enterpriseRoutes.js';
+import multiagentRoutes from './routes/multiagentRoutes.js';
+import autonomousRoutes from './routes/autonomousRoutes.js';
 
 dotenv.config();
+
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET is missing.\nPlease configure backend/.env');
+}
+
+if (!process.env.GEMINI_API_KEY && !process.env.VITE_GEMINI_API_KEY) {
+  console.error('❌ GEMINI_API_KEY is missing.\nAI Agent features will fail. Please configure backend/.env');
+}
 
 // Connect to MongoDB
 connectDB();
@@ -64,6 +76,10 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/scans', scanRoutes);
+app.use('/api/agent', agentRoutes);
+app.use('/api/enterprise', enterpriseRoutes);
+app.use('/api/multiagent', multiagentRoutes);
+app.use('/api/autonomous', autonomousRoutes);
 
 app.get('/api/agri/fertilizer-data', async (req, res, next) => {
   try {
@@ -120,7 +136,7 @@ app.post('/api/agri/anthropic-advice', async (req, res) => {
       // Fallback to Gemini if Anthropic key is missing
       const prompt = req.body.messages?.[0]?.content || 'Agricultural advice requested.';
       const response = await fetchWithTimeout(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

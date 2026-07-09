@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Leaf, Sprout, CloudRain, TrendingUp, HandCoins, PhoneCall, Camera } from 'lucide-react';
+import { X, Send, Leaf, Sprout, CloudRain, TrendingUp, HandCoins, PhoneCall, Camera, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { AuthContext } from '../../context/AuthContext';
@@ -21,6 +21,9 @@ const AISahayikBot = ({ isOpen, onClose, initialPosition }) => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   
   const navigate = useNavigate();
   const { lang, setLang, t } = useLanguage();
@@ -82,6 +85,77 @@ const AISahayikBot = ({ isOpen, onClose, initialPosition }) => {
 
   const handleQuickAction = (label) => {
     handleSend(`Sir, mujhe ${label} ke baare me janna hai.`);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await handleAudioUpload(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+      setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Microphone access is required to use Voice Intelligence." }]);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleAudioUpload = async (audioBlob) => {
+    setMessages(prev => [...prev, { role: 'user', content: `🎤 [Voice Message Sent]` }]);
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice.webm');
+      
+      const response = await fetch('/api/agent/tools/voice', {
+        method: 'POST',
+        // Assuming we need to pass headers with token in a real app, but using standard fetch here
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Voice API Error");
+
+      const data = await response.json();
+      
+      if (data.transcript) {
+        setMessages(prev => {
+           const newMsgs = [...prev];
+           // Replace the "Voice Message Sent" with actual transcript
+           newMsgs[newMsgs.length - 1].content = `🎤 "${data.transcript}"`;
+           newMsgs.push({ role: 'assistant', content: data.agentResponse || "Analyzed voice input." });
+           return newMsgs;
+        });
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: "Could not transcribe audio." }]);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Failed to process voice input." }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -223,10 +297,23 @@ const AISahayikBot = ({ isOpen, onClose, initialPosition }) => {
             <button
               type="button"
               onClick={() => document.getElementById('bot-camera-upload').click()}
-              className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center hover:bg-emerald-50 transition-all border border-gray-200 text-gray-500 hover:text-emerald-600 active:scale-95 group"
+              className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center hover:bg-emerald-50 transition-all border border-gray-200 text-gray-500 hover:text-emerald-600 active:scale-95 group shrink-0"
               title="Upload leaf photo"
             >
               <Camera className="w-6 h-6 group-hover:scale-110 transition-transform" />
+            </button>
+            
+            <button
+              type="button"
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onMouseLeave={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border shrink-0 ${isRecording ? 'bg-red-500 border-red-600 text-white animate-pulse' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600'} active:scale-95`}
+              title="Hold to speak"
+            >
+              <Mic className="w-6 h-6" />
             </button>
 
             <input
