@@ -2,8 +2,6 @@
 
 <div align="center">
 
-![FasalRakshak Banner](assets/landing_preview.png)
-
 <h3><strong>Bridging the Gap Between Advanced AI and Real-World Agriculture</strong></h3>
 
 <p align="center">
@@ -22,14 +20,6 @@
 </div>
 
 ---
-
-## 📸 Application Preview
-
-| Landing Page | Weather Dashboard | 
-|:---:|:---:|
-| ![Landing](assets/landing_preview.png) | ![Weather](assets/weather_preview.png) | 
-
-> _The application features a modern, dark-themed UI with fluid animations, glassmorphism cards, and AI-powered intelligence modules._
 
 ---
 
@@ -327,8 +317,6 @@ Technology must speak your language. FasalRakshak is engineered with a scalable 
 ```
 fasalrakshak/
 ├── README.md                    # Project documentation
-├── assets/
-│   └── landing_preview.png       # Landing page screenshot
 │
 └── fasalrakshak/                # Monorepo root
     ├── package.json              # Root scripts (install-all, dev)
