@@ -20,10 +20,12 @@ import Ecosystem from './pages/Ecosystem';
 import SoilReport from './pages/SoilReport';
 import LandingPage from './pages/LandingPage';
 import OrganicToggle from './components/organic/OrganicToggle';
+import NotFound from './components/NotFound';
 
 import { AuthContext } from './context/AuthContext';
 import { useLanguage } from './context/LanguageContext';
 import AISahayikBot from './components/chatbot/AISahayikBot';
+import circularFarmLogo from './images/circular_farm.png';
 
 function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -52,9 +54,10 @@ function App() {
           <motion.div 
             animate={{ rotate: 360 }} 
             transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-            className="w-full h-full border-4 border-green-100 border-t-[#2d5a27] rounded-full"
-          />
-          <Leaf className="absolute inset-0 m-auto text-[#2d5a27] w-8 h-8 animate-pulse" />
+            className="w-full h-full border-4 border-green-100 border-t-[#2d5a27] rounded-full flex items-center justify-center"
+          >
+            <img src={circularFarmLogo} alt="FasalRakshak" className="w-8 h-8 object-contain" />
+          </motion.div>
         </div>
         <div className="text-center font-playfair">
           <h2 className="text-3xl font-black text-gray-800">Fasal<span className="text-green-700">Rakshak</span></h2>
@@ -109,14 +112,14 @@ function App() {
               path="/library/:id"
               element={<DiseaseDetail />}
             />
-            {/* Added fallback routes from Rishikesh merge */}
+            {/* Redirect old /diseases URLs to /library */}
             <Route
               path="/diseases"
-              element={<DiseaseLibrary />}
+              element={<Navigate to="/library" replace />}
             />
             <Route
               path="/diseases/:id"
-              element={<DiseaseDetail />}
+              element={<Navigate to="/library/:id" replace />}
             />
             <Route
               path="/weather"
@@ -139,6 +142,7 @@ function App() {
               path="/organic" 
               element={<LandingPage />} 
             />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
       </div>
